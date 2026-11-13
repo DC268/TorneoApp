@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torneo Master & MTG Life Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+<div id="app" class="max-w-6xl mx-auto p-4 md:p-6">
+    <!-- Header -->
+    <header class="flex flex-wrap items-center justify-between pb-6 border-b border-slate-800 gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-2xl shadow-lg shadow-indigo-500/30">
+                <i class="fa-solid fa-dice-d20"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black tracking-tight text-white">Torneo Master</h1>
+                <p class="text-xs text-slate-400">Magic: The Gathering & Tournament Management</p>
+            </div>
+        </div>
+
+        <div id="user-bar" class="flex items-center gap-3">
+            <!-- Rendered by JS -->
+        </div>
+    </header>
+
+    <!-- Main Content Containers -->
+    <main class="mt-6">
+        <!-- Auth View -->
+        <section id="view-auth" class="max-w-md mx-auto bg-slate-800/80 p-8 rounded-2xl border border-slate-700 shadow-2xl backdrop-blur-sm">
+            <h2 class="text-xl font-bold mb-2 text-center">Iniciar Sesión</h2>
+            <p class="text-xs text-slate-400 text-center mb-6">Ingresa con tus credenciales o cuenta Google</p>
+
+            <button onclick="handleGoogleSignIn()" class="w-full flex items-center justify-center gap-3 bg-white text-slate-900 font-semibold py-2.5 px-4 rounded-xl hover:bg-slate-100 transition shadow-md mb-4 text-sm">
+                <i class="fa-brands fa-google text-red-500 text-base"></i> Continuar con Google
+            </button>
+
+            <div class="flex items-center my-4">
+                <div class="flex-grow border-t border-slate-700"></div>
+                <span class="px-3 text-xs text-slate-500 uppercase">o con correo</span>
+                <div class="flex-grow border-t border-slate-700"></div>
+            </div>
+
+            <form onsubmit="handleEmailLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Correo Electrónico</label>
+                    <input type="email" id="login-email" required value="dcagua268@gmail.com"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Contraseña (letras y números)</label>
+                    <input type="password" id="login-password" required value="Holasoyyo12345"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 text-white">
+                </div>
+                <div id="auth-error" class="hidden text-xs text-red-400 bg-red-950/50 p-3 rounded-lg border border-red-800"></div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/30 text-sm">
+                    Iniciar Sesión
+                </button>
+            </form>
+        </section>
+
+        <!-- Dashboard View -->
+        <section id="view-dashboard" class="hidden space-y-6">
+            <!-- Navigation Tabs -->
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-3">
+                <nav class="flex gap-2">
+                    <button onclick="switchTab('tab-inscribir')" id="btn-tab-inscribir" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-indigo-600 text-white">
+                        <i class="fa-solid fa-user-plus mr-2"></i> 1. Inscribir Participantes
+                    </button>
+                    <button onclick="switchTab('tab-emparejar')" id="btn-tab-emparejar" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-slate-800 text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-shuffle mr-2"></i> 2. Emparejamiento Random
+                    </button>
+                    <button onclick="switchTab('tab-resultados')" id="btn-tab-resultados" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-slate-800 text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-trophy mr-2"></i> 3. Resultados
+                    </button>
+                    <button onclick="switchTab('tab-tracker')" id="btn-tab-tracker" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-slate-800 text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-heart-pulse mr-2 text-rose-500"></i> MTG Life Tracker
+                    </button>
+                </nav>
+
+                <div class="flex items-center gap-2">
+                    <select id="select-tournament" onchange="onTournamentSelected()" class="bg-slate-800 border border-slate-700 text-xs rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                    </select>
+                    <button onclick="openNewTournamentModal()" class="bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 border border-indigo-500/30 text-xs px-3 py-2 rounded-xl font-medium transition">
+                        <i class="fa-solid fa-plus mr-1"></i> Nuevo Torneo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab 1: Inscribir -->
+            <div id="tab-inscribir" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-slate-800/80 p-6 rounded-2xl border border-slate-700">
+                    <h3 class="font-bold text-base mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus text-indigo-400"></i> Inscripción Rápida
+                    </h3>
+                    <form onsubmit="handleRegisterParticipant(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Nombre Completo</label>
+                            <input type="text" id="part-name" required placeholder="Ej: David Cagua" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Correo Electrónico</label>
+                            <input type="email" id="part-email" placeholder="opcional@mtg.com" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Mazo / Arquetipo</label>
+                            <input type="text" id="part-deck" placeholder="Ej: Izzet Murktide" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-xl text-sm transition">
+                            Inscribir al Torneo
+                        </button>
+                    </form>
+                </div>
+
+                <div class="lg:col-span-2 bg-slate-800/80 p-6 rounded-2xl border border-slate-700">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-base flex items-center gap-2">
+                            <i class="fa-solid fa-users text-indigo-400"></i> Participantes Registrados (<span id="part-count">0</span>)
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                                <tr>
+                                    <th class="pb-3">Jugador</th>
+                                    <th class="pb-3">Mazo</th>
+                                    <th class="pb-3 text-center">Puntos</th>
+                                    <th class="pb-3 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-participants" class="divide-y divide-slate-750"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Emparejar -->
+            <div id="tab-emparejar" class="tab-content hidden space-y-6">
+                <div class="flex items-center justify-between bg-slate-800/80 p-6 rounded-2xl border border-slate-700">
+                    <div>
+                        <h3 class="font-bold text-lg text-white">Emparejamiento Automático y Aleatorio</h3>
+                        <p class="text-xs text-slate-400">Genera mesas 1v1 o mesas de 4 jugadores (Commander) al azar de forma justa.</p>
+                    </div>
+                    <button onclick="handleGeneratePairings()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm shadow-lg shadow-emerald-600/30 transition flex items-center gap-2">
+                        <i class="fa-solid fa-shuffle"></i> Emparejar Ahora
+                    </button>
+                </div>
+
+                <div id="matches-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+
+            <!-- Tab 3: Resultados -->
+            <div id="tab-resultados" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 p-6 rounded-2xl border border-slate-700">
+                    <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-amber-400"></i> Resultados y Posiciones del Torneo
+                    </h3>
+                    <div id="results-list" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <!-- Tab 4: MTG Life Tracker -->
+            <div id="tab-tracker" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <span class="text-xs text-slate-400 font-semibold uppercase">Formato:</span>
+                        <button onclick="setTrackerFormat('STANDARD')" id="btn-format-std" class="px-3 py-1 rounded-lg text-xs font-medium bg-slate-700 text-white">Estándar (20 V)</button>
+                        <button onclick="setTrackerFormat('COMMANDER')" id="btn-format-cmd" class="px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white">Commander (40 V)</button>
+
+                        <span class="text-xs text-slate-400 font-semibold uppercase ml-4">Jugadores:</span>
+                        <button onclick="setTrackerPlayers(2)" class="px-2.5 py-1 rounded-lg text-xs bg-slate-700 text-white">2</button>
+                        <button onclick="setTrackerPlayers(3)" class="px-2.5 py-1 rounded-lg text-xs bg-slate-700 text-white">3</button>
+                        <button onclick="setTrackerPlayers(4)" class="px-2.5 py-1 rounded-lg text-xs bg-indigo-600 text-white">4</button>
+                    </div>
+
+                    <!-- Timer Central -->
+                    <div class="flex items-center gap-3 bg-slate-900 px-4 py-2 rounded-xl border border-slate-700">
+                        <span id="tracker-timer" class="text-xl font-mono font-black text-amber-400">50:00</span>
+                        <button onclick="toggleTimer()" id="btn-timer-toggle" class="text-slate-300 hover:text-white"><i class="fa-solid fa-play"></i></button>
+                        <button onclick="resetTimer()" class="text-slate-300 hover:text-white"><i class="fa-solid fa-rotate-right"></i></button>
+                    </div>
+                </div>
+
+                <div id="tracker-grid" class="grid grid-cols-2 gap-4"></div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    let currentUser = null;
+    let tournaments = [];
+    let currentTournamentId = null;
+    let participants = [];
+    let matches = [];
+
+    // Life Tracker State
+    let trackerFormat = 'COMMANDER';
+    let trackerCount = 4;
+    let trackerSeconds = 50 * 60;
+    let trackerInterval = null;
+    let trackerPlayers = [
+        { id: 1, name: 'Jugador 1', life: 40, poison: 0, cmdDmg: 0, color: 'bg-rose-900/60' },
+        { id: 2, name: 'Jugador 2', life: 40, poison: 0, cmdDmg: 0, color: 'bg-blue-900/60' },
+        { id: 3, name: 'Jugador 3', life: 40, poison: 0, cmdDmg: 0, color: 'bg-emerald-900/60' },
+        { id: 4, name: 'Jugador 4', life: 40, poison: 0, cmdDmg: 0, color: 'bg-purple-900/60' }
+    ];
+
+    async function init() {
+        renderUserBar();
+        renderTracker();
+    }
+
+    function renderUserBar() {
+        const bar = document.getElementById('user-bar');
+        if (currentUser) {
+            bar.innerHTML = `
+                <div class="text-right">
+                    <p class="text-xs font-bold text-white">${currentUser.name}</p>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${currentUser.role === 'ADMIN' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-slate-700 text-slate-300'}">${currentUser.role}</span>
+                </div>
+                <button onclick="logout()" class="text-slate-400 hover:text-rose-400 text-sm ml-2"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+            `;
+        } else {
+            bar.innerHTML = `<span class="text-xs text-slate-400">Modo Invitado</span>`;
+        }
+    }
+
+    async function handleEmailLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-password').value;
+        const errDiv = document.getElementById('auth-error');
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Error al iniciar sesión');
+
+            currentUser = data;
+            document.getElementById('view-auth').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            renderUserBar();
+            loadTournaments();
+        } catch (err) {
+            errDiv.textContent = err.message;
+            errDiv.classList.remove('hidden');
+        }
+    }
+
+    async function handleGoogleSignIn() {
+        try {
+            const res = await fetch('/api/auth/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    idToken: "mock-google-token",
+                    email: "dcagua268@gmail.com",
+                    name: "David Cagua (Google)"
+                })
+            });
+            const data = await res.json();
+            currentUser = data;
+            document.getElementById('view-auth').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            renderUserBar();
+            loadTournaments();
+        } catch (err) {
+            alert('Error en Google Sign-In: ' + err.message);
+        }
+    }
+
+    function logout() {
+        currentUser = null;
+        document.getElementById('view-dashboard').classList.add('hidden');
+        document.getElementById('view-auth').classList.remove('hidden');
+        renderUserBar();
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('bg-indigo-600', 'text-white');
+            btn.classList.add('bg-slate-800', 'text-slate-400');
+        });
+        document.getElementById(tabId).classList.remove('hidden');
+        document.getElementById('btn-' + tabId).classList.add('bg-indigo-600', 'text-white');
+        document.getElementById('btn-' + tabId).classList.remove('bg-slate-800', 'text-slate-400');
+    }
+
+    async function loadTournaments() {
+        const res = await fetch('/api/tournaments');
+        tournaments = await res.json();
+        const select = document.getElementById('select-tournament');
+        select.innerHTML = tournaments.map(t => `<option value="${t.id}">${t.name} (${t.format})</option>`).join('');
+        if (tournaments.length > 0) {
+            currentTournamentId = tournaments[0].id;
+            loadParticipants();
+            loadMatches();
+        }
+    }
+
+    function onTournamentSelected() {
+        currentTournamentId = document.getElementById('select-tournament').value;
+        loadParticipants();
+        loadMatches();
+    }
+
+    async function loadParticipants() {
+        if (!currentTournamentId) return;
+        const res = await fetch(`/api/tournaments/${currentTournamentId}/participants`);
+        participants = await res.json();
+        document.getElementById('part-count').textContent = participants.length;
+
+        const tbody = document.getElementById('table-participants');
+        tbody.innerHTML = participants.map(p => `
+            <tr class="hover:bg-slate-800/50">
+                <td class="py-2.5 font-medium text-white">${p.name} <br><span class="text-[10px] text-slate-400">${p.email}</span></td>
+                <td class="py-2.5 text-indigo-300">${p.deckName || 'Sin mazo'}</td>
+                <td class="py-2.5 text-center font-bold text-amber-400">${p.matchPoints}</td>
+                <td class="py-2.5 text-right">
+                    <button onclick="removeParticipant('${p.userId}')" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    async function handleRegisterParticipant(e) {
+        e.preventDefault();
+        const name = document.getElementById('part-name').value;
+        const email = document.getElementById('part-email').value;
+        const deckName = document.getElementById('part-deck').value;
+
+        await fetch(`/api/tournaments/${currentTournamentId}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, deckName })
+        });
+        document.getElementById('part-name').value = '';
+        document.getElementById('part-deck').value = '';
+        loadParticipants();
+    }
+
+    async function removeParticipant(userId) {
+        await fetch(`/api/tournaments/${currentTournamentId}/participants/${userId}`, { method: 'DELETE' });
+        loadParticipants();
+    }
+
+    async function handleGeneratePairings() {
+        const res = await fetch(`/api/tournaments/${currentTournamentId}/pairings/random`, { method: 'POST' });
+        if (res.ok) {
+            loadMatches();
+            switchTab('tab-emparejar');
+        } else {
+            const err = await res.json();
+            alert(err.error || 'No se pudieron generar los emparejamientos');
+        }
+    }
+
+    async function loadMatches() {
+        if (!currentTournamentId) return;
+        const res = await fetch(`/api/matches/tournament/${currentTournamentId}`);
+        matches = await res.json();
+
+        const grid = document.getElementById('matches-grid');
+        const results = document.getElementById('results-list');
+
+        if (matches.length === 0) {
+            grid.innerHTML = `<p class="col-span-2 text-center text-slate-400 py-8">No hay emparejamientos aún. Haz clic en "Emparejar Ahora".</p>`;
+            results.innerHTML = `<p class="text-center text-slate-400 py-8">Aún no se han disputado encuentros.</p>`;
+            return;
+        }
+
+        grid.innerHTML = matches.map(m => `
+            <div class="bg-slate-800/90 p-5 rounded-2xl border border-slate-700 space-y-4">
+                <div class="flex items-center justify-between text-xs border-b border-slate-700/60 pb-2">
+                    <span class="font-bold text-indigo-400">Mesa #${m.tableNumber}</span>
+                    <span class="px-2 py-0.5 rounded-full ${m.status === 'COMPLETED' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'} font-semibold">${m.status}</span>
+                </div>
+                <div class="space-y-2">
+                    ${m.players.map(p => `
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                            <span class="font-medium text-white">${p.name}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-slate-400">Score: ${p.score}</span>
+                                ${m.status !== 'COMPLETED' ? `<button onclick="setWinner('${m.id}', '${p.userId}')" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded-lg">Ganó</button>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                ${m.winnerName ? `<p class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-crown mr-1 text-amber-400"></i> Ganador: ${m.winnerName}</p>` : ''}
+            </div>
+        `).join('');
+
+        results.innerHTML = matches.map(m => `
+            <div class="flex items-center justify-between p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <div>
+                    <p class="font-bold text-white text-sm">Mesa ${m.tableNumber} - Ronda ${m.roundNumber}</p>
+                    <p class="text-xs text-slate-400">${m.players.map(p => p.name).join(' vs ')}</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs font-bold ${m.winnerName ? 'text-emerald-400' : 'text-slate-400'}">${m.winnerName ? 'Ganador: ' + m.winnerName : 'En disputa'}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function setWinner(matchId, winnerId) {
+        await fetch(`/api/matches/${matchId}/results`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ winnerId, scores: [{ userId: winnerId, score: 2 }] })
+        });
+        loadMatches();
+        loadParticipants();
+    }
+
+    // MTG Life Tracker Logic
+    function setTrackerFormat(fmt) {
+        trackerFormat = fmt;
+        const startingLife = fmt === 'COMMANDER' ? 40 : 20;
+        trackerPlayers.forEach(p => p.life = startingLife);
+        document.getElementById('btn-format-std').className = fmt === 'STANDARD' ? 'px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white' : 'px-3 py-1 rounded-lg text-xs font-medium bg-slate-700 text-white';
+        document.getElementById('btn-format-cmd').className = fmt === 'COMMANDER' ? 'px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white' : 'px-3 py-1 rounded-lg text-xs font-medium bg-slate-700 text-white';
+        renderTracker();
+    }
+
+    function setTrackerPlayers(count) {
+        trackerCount = count;
+        renderTracker();
+    }
+
+    function renderTracker() {
+        const grid = document.getElementById('tracker-grid');
+        const active = trackerPlayers.slice(0, trackerCount);
+        grid.className = trackerCount === 2 ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-2 gap-4';
+
+        grid.innerHTML = active.map(p => {
+            const isDead = p.life <= 0 || p.poison >= 10 || p.cmdDmg >= 21;
+            return `
+                <div class="${p.color} p-6 rounded-2xl border ${isDead ? 'border-red-600' : 'border-slate-700'} relative flex flex-col justify-between h-56 shadow-xl">
+                    ${isDead ? `<div class="absolute inset-0 bg-red-950/80 rounded-2xl flex items-center justify-center text-xl font-black text-white">DERROTADO</div>` : ''}
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-sm text-white">${p.name}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs bg-black/40 px-2 py-0.5 rounded-lg text-emerald-400">☣ ${p.poison}/10</span>
+                            <span class="text-xs bg-black/40 px-2 py-0.5 rounded-lg text-amber-400">👑 ${p.cmdDmg}/21</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between my-auto">
+                        <button onclick="modLife(${p.id}, -1)" class="w-14 h-14 rounded-2xl bg-black/40 hover:bg-black/60 text-white text-2xl font-bold flex items-center justify-center">-</button>
+                        <span class="text-5xl font-black text-white">${p.life}</span>
+                        <button onclick="modLife(${p.id}, 1)" class="w-14 h-14 rounded-2xl bg-black/40 hover:bg-black/60 text-white text-2xl font-bold flex items-center justify-center">+</button>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-slate-300">
+                        <button onclick="modPoison(${p.id}, 1)" class="hover:text-emerald-400">+1 Veneno</button>
+                        <button onclick="modCmd(${p.id}, 1)" class="hover:text-amber-400">+1 Comandante</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function modLife(id, delta) {
+        const p = trackerPlayers.find(x => x.id === id);
+        if (p) p.life += delta;
+        renderTracker();
+    }
+    function modPoison(id, delta) {
+        const p = trackerPlayers.find(x => x.id === id);
+        if (p) p.poison = Math.max(0, p.poison + delta);
+        renderTracker();
+    }
+    function modCmd(id, delta) {
+        const p = trackerPlayers.find(x => x.id === id);
+        if (p) { p.cmdDmg = Math.max(0, p.cmdDmg + delta); p.life -= delta; }
+        renderTracker();
+    }
+
+    function toggleTimer() {
+        if (trackerInterval) {
+            clearInterval(trackerInterval);
+            trackerInterval = null;
+            document.getElementById('btn-timer-toggle').innerHTML = '<i class="fa-solid fa-play"></i>';
+        } else {
+            trackerInterval = setInterval(() => {
+                if (trackerSeconds > 0) {
+                    trackerSeconds--;
+                    const m = Math.floor(trackerSeconds / 60);
+                    const s = trackerSeconds % 60;
+                    document.getElementById('tracker-timer').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                }
+            }, 1000);
+            document.getElementById('btn-timer-toggle').innerHTML = '<i class="fa-solid fa-pause"></i>';
+        }
+    }
+
+    function resetTimer() {
+        if (trackerInterval) clearInterval(trackerInterval);
+        trackerInterval = null;
+        trackerSeconds = 50 * 60;
+        document.getElementById('tracker-timer').textContent = '50:00';
+        document.getElementById('btn-timer-toggle').innerHTML = '<i class="fa-solid fa-play"></i>';
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>
