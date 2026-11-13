@@ -45,7 +45,12 @@ class SessionManager(context: Context) {
     fun isAdmin(): Boolean = "ADMIN".equals(getUserRole(), ignoreCase = true)
 
     fun getServerUrl(): String {
-        return prefs.getString(KEY_SERVER_URL, DEFAULT_SERVER_URL) ?: DEFAULT_SERVER_URL
+        val saved = prefs.getString(KEY_SERVER_URL, null)
+        if (saved.isNullOrBlank() || saved.contains("10.0.2.2")) {
+            setServerUrl(DEFAULT_SERVER_URL)
+            return DEFAULT_SERVER_URL
+        }
+        return saved
     }
 
     fun setServerUrl(url: String) {
