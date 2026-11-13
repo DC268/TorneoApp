@@ -71,10 +71,12 @@ fun MtgLifeTrackerScreen(
                 else -> FourPlayersLayout(state.players, viewModel)
             }
 
-            // Hub central con Controles de Turno, Pausa Global y Configuración
+            // Relojes en la mitad de la pantalla con el color de cada jugador y controles
             CenterTimerHub(
                 modifier = Modifier.align(Alignment.Center),
+                players = state.players,
                 isAnyRunning = state.isAnyTimerRunning,
+                onTogglePlayerTimer = { playerId -> viewModel.togglePlayerTimer(playerId) },
                 onToggleGlobalTimer = { viewModel.toggleGlobalTimer() },
                 onPassTurn = { viewModel.passTurn() },
                 onResetMatch = { viewModel.resetMatch() },

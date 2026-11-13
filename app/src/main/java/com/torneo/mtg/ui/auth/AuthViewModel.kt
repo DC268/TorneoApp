@@ -99,6 +99,27 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.value = AuthUiState.Error(msg)
     }
 
+    fun resetState() {
+        _uiState.value = AuthUiState.Idle
+    }
+
+    fun logout(context: android.content.Context) {
+        sessionManager.clearSession()
+        _uiState.value = AuthUiState.Idle
+        try {
+            val client = com.torneo.mtg.data.auth.GoogleAuthHelper.getGoogleSignInClient(context)
+            client.signOut().addOnCompleteListener {
+                try {
+                    client.revokeAccess()
+                } catch (e: Exception) {
+                    // Ignored
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     fun setServerIp(ip: String) {
         val formatted = if (ip.startsWith("http://") || ip.startsWith("https://")) ip else "http://$ip:8080/"
         sessionManager.setServerUrl(formatted)

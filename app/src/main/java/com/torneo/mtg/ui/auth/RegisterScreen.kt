@@ -54,7 +54,9 @@ fun RegisterScreen(
 
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
-            onRegisterSuccess((uiState as AuthUiState.Success).role)
+            val role = (uiState as AuthUiState.Success).role
+            viewModel.resetState()
+            onRegisterSuccess(role)
         }
     }
 
@@ -107,10 +109,7 @@ fun RegisterScreen(
                         Button(
                             onClick = {
                                 try {
-                                    val client = GoogleAuthHelper.getGoogleSignInClient(context)
-                                    client.signOut().addOnCompleteListener {
-                                        googleSignInLauncher.launch(client.signInIntent)
-                                    }
+                                    GoogleAuthHelper.launchSignInWithAccountPicker(context, googleSignInLauncher)
                                 } catch (e: Exception) {
                                     viewModel.setErrorMessage("Error en Google Client: ${e.message}")
                                 }

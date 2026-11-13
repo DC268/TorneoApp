@@ -128,7 +128,7 @@ fun PlayerZone(
 }
 
 // -------------------------------------------------------------
-// VISTA PRINCIPAL: VIDAS + RELOJ DE 20 MINUTOS AL LADO
+// VISTA PRINCIPAL: VIDAS GRANDES (CENTRADAS Y CÓMODAS)
 // -------------------------------------------------------------
 @Composable
 fun LifeAndTimerView(
@@ -139,11 +139,11 @@ fun LifeAndTimerView(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 8.dp, vertical = 6.dp),
+            .padding(horizontal = 10.dp, vertical = 6.dp),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Cabecera: Nombre del jugador y estado de turno
+        // Cabecera: Nombre del jugador y acceso a Daño de Comandante
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -152,13 +152,13 @@ fun LifeAndTimerView(
             Text(
                 text = player.name,
                 color = Color.White,
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold
             )
 
             // Indicador de deslizamiento hacia la derecha
             Surface(
-                color = Color.Black.copy(alpha = 0.4f),
+                color = Color.Black.copy(alpha = 0.45f),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.clickable { onOpenCommander() }
             ) {
@@ -167,34 +167,34 @@ fun LifeAndTimerView(
                     color = Color(0xFFFDE047),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                 )
             }
         }
 
-        // Fila Central: VIDAS y TIEMPO (20 MINUTOS) AL LADO
+        // Fila Central: VIDAS ENORMES con botones (-) y (+)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 2.dp),
+                .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             // Botón (-) Vidas
             Button(
                 onClick = { viewModel.modifyLife(player.id, -1) },
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black.copy(alpha = 0.45f)),
-                modifier = Modifier.size(52.dp),
+                modifier = Modifier.size(62.dp),
                 contentPadding = PaddingValues(0.dp)
             ) {
-                Text("-", fontSize = 26.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                Text("-", fontSize = 32.sp, color = Color.White, fontWeight = FontWeight.Bold)
             }
 
-            // Total de Vidas
+            // Total de Vidas ENORME
             Text(
                 text = "${player.life}",
-                fontSize = 46.sp,
+                fontSize = 64.sp,
                 fontWeight = FontWeight.Black,
                 color = Color.White
             )
@@ -202,49 +202,16 @@ fun LifeAndTimerView(
             // Botón (+) Vidas
             Button(
                 onClick = { viewModel.modifyLife(player.id, 1) },
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black.copy(alpha = 0.45f)),
-                modifier = Modifier.size(52.dp),
+                modifier = Modifier.size(62.dp),
                 contentPadding = PaddingValues(0.dp)
             ) {
-                Text("+", fontSize = 26.sp, color = Color.White, fontWeight = FontWeight.Bold)
-            }
-
-            // REQUISITO: RELOJ DE 20 MINUTOS AL LADO DE LAS VIDAS
-            Surface(
-                color = if (player.isTimerRunning) Color(0xFF065F46) else Color.Black.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(
-                    1.5.dp,
-                    if (player.isTimerRunning) Color(0xFF34D399)
-                    else if (player.timeSeconds < 180) Color(0xFFF87171)
-                    else Color.White.copy(alpha = 0.2f)
-                ),
-                modifier = Modifier
-                    .padding(start = 4.dp)
-                    .clickable { viewModel.togglePlayerTimer(player.id) }
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = player.formattedTime,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Black,
-                        color = if (player.timeSeconds < 180) Color(0xFFFF5252) else Color.White
-                    )
-                    Text(
-                        text = if (player.isTimerRunning) "TURNO ▶" else "PAUSA ⏸",
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (player.isTimerRunning) Color(0xFF6EE7B7) else Color(0xFF94A3B8)
-                    )
-                }
+                Text("+", fontSize = 32.sp, color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
 
-        // Fila Inferior: Sub-contadores y opciones
+        // Fila Inferior: Sub-contadores (Veneno y Daño de Comandante recibido)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -253,34 +220,34 @@ fun LifeAndTimerView(
             // Contador de Veneno (Infect 10)
             Surface(
                 shape = RoundedCornerShape(10.dp),
-                color = Color.Black.copy(alpha = 0.45f)
+                color = Color.Black.copy(alpha = 0.5f)
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "-",
                         color = Color.White,
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
-                            .padding(end = 6.dp)
+                            .padding(end = 8.dp)
                             .clickable { viewModel.modifyPoison(player.id, -1) }
                     )
                     Text(
                         text = "☣ ${player.poison}/10",
-                        color = if (player.poison >= 10) Color.Green else Color.White,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold
+                        color = if (player.poison >= 10) Color(0xFF4ADE80) else Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "+",
                         color = Color.White,
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
-                            .padding(start = 6.dp)
+                            .padding(start = 8.dp)
                             .clickable { viewModel.modifyPoison(player.id, 1) }
                     )
                 }
@@ -290,15 +257,15 @@ fun LifeAndTimerView(
             val maxCmdDmg = player.commanderDamage.values.maxOrNull() ?: 0
             Surface(
                 shape = RoundedCornerShape(10.dp),
-                color = Color.Black.copy(alpha = 0.45f),
+                color = Color.Black.copy(alpha = 0.5f),
                 modifier = Modifier.clickable { onOpenCommander() }
             ) {
                 Text(
                     text = "👑 Cmd: $maxCmdDmg/21",
                     color = if (maxCmdDmg >= 21) Color(0xFFEF4444) else Color(0xFFFDE047),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
         }

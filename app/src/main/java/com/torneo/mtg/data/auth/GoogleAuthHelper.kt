@@ -2,6 +2,7 @@ package com.torneo.mtg.data.auth
 
 import android.content.Context
 import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -29,6 +30,26 @@ object GoogleAuthHelper {
         }
 
         return GoogleSignIn.getClient(context, gsoBuilder.build())
+    }
+
+    /**
+     * Cierra sesión y revoca el acceso previo para forzar siempre
+     * que aparezca el selector con qué cuenta de Google desea ingresar ("Elige una cuenta").
+     */
+    fun launchSignInWithAccountPicker(
+        context: Context,
+        launcher: ActivityResultLauncher<Intent>
+    ) {
+        val client = getGoogleSignInClient(context)
+        client.signOut().addOnCompleteListener {
+            try {
+                client.revokeAccess().addOnCompleteListener {
+                    launcher.launch(client.signInIntent)
+                }
+            } catch (e: Exception) {
+                launcher.launch(client.signInIntent)
+            }
+        }
     }
 
     fun parseSignInResult(data: Intent?): Result<GoogleSignInAccount> {

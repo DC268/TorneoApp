@@ -55,7 +55,9 @@ fun LoginScreen(
 
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
-            onLoginSuccess((uiState as AuthUiState.Success).role)
+            val role = (uiState as AuthUiState.Success).role
+            viewModel.resetState()
+            onLoginSuccess(role)
         }
     }
 
@@ -119,10 +121,7 @@ fun LoginScreen(
                     Button(
                         onClick = {
                             try {
-                                val client = GoogleAuthHelper.getGoogleSignInClient(context)
-                                client.signOut().addOnCompleteListener {
-                                    googleSignInLauncher.launch(client.signInIntent)
-                                }
+                                GoogleAuthHelper.launchSignInWithAccountPicker(context, googleSignInLauncher)
                             } catch (e: Exception) {
                                 viewModel.setErrorMessage("Error en Google Client: ${e.message}")
                             }

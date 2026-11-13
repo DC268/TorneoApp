@@ -29,6 +29,7 @@ class MainActivity : ComponentActivity() {
 fun TorneoAppNavigation() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
@@ -81,6 +82,7 @@ fun TorneoAppNavigation() {
                     navController.navigate("life_tracker")
                 },
                 onLogout = {
+                    authViewModel.logout(context)
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
@@ -95,6 +97,7 @@ fun TorneoAppNavigation() {
                     navController.navigate("life_tracker")
                 },
                 onLogout = {
+                    authViewModel.logout(context)
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
