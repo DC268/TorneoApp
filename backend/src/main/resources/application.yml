@@ -46,9 +46,9 @@ spring:
     activate:
       on-profile: prod
   datasource:
-    url: ${SUPABASE_DB_URL:jdbc:postgresql://localhost:5432/postgres}
-    username: ${SUPABASE_DB_USER:postgres}
-    password: ${SUPABASE_DB_PASSWORD:}
+    url: ${SUPABASE_DB_URL:jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require}
+    username: ${SUPABASE_DB_USER:postgres.gyflqnrklsgxbxolwgdh}
+    password: ${SUPABASE_DB_PASSWORD:.3Jk8KxbJ@7vgxc}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
