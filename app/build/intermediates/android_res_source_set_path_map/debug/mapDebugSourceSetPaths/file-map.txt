@@ -1,9 +1,0 @@
-com.torneo.app-pngs-0 G:\DC\Programas\TorneoApp\app\build\generated\res\pngs\debug
-com.torneo.app-resValues-1 G:\DC\Programas\TorneoApp\app\build\generated\res\resValues\debug
-com.torneo.app-updated_navigation_xml-2 G:\DC\Programas\TorneoApp\app\build\generated\updated_navigation_xml\debug
-com.torneo.app-packageDebugResources-3 G:\DC\Programas\TorneoApp\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
-com.torneo.app-packageDebugResources-4 G:\DC\Programas\TorneoApp\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
-com.torneo.app-debug-5 G:\DC\Programas\TorneoApp\app\build\intermediates\merged_res\debug\mergeDebugResources
-com.torneo.app-debug-6 G:\DC\Programas\TorneoApp\app\src\debug\res
-com.torneo.app-main-7 G:\DC\Programas\TorneoApp\app\src\main\res
-gradleHome-0 G:\.gradle
