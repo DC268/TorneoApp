@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.torneo.mtg.app-mergeDebugResources-52:/values-v30/values-v30.xml",
+            "outputFile": "com.torneo.mtg.app-mergeDebugResources-56:/values-v30/values-v30.xml",
             "map": [
                 {
                     "source": "G:\\.gradle\\caches\\9.6.0\\transforms\\5e6ca0779787a02537cd62440acea44c\\transformed\\material3-release\\res\\values-v30\\values-v30.xml",

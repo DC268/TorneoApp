@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Torneo Master</string>
+    <!-- Web Client ID generado en Google Cloud Console para solicitar el ID Token -->
+    <string name="default_web_client_id">959611401831-0lil3q672ahjuru06gsunc3pdu1lhdmh.apps.googleusercontent.com</string>
 </resources>

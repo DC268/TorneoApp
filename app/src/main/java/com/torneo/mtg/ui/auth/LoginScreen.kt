@@ -19,6 +19,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import com.torneo.mtg.data.auth.GoogleAuthHelper
 
 @Composable
 fun LoginScreen(
@@ -29,10 +33,25 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showIpDialog by remember { mutableStateOf(false) }
     var ipText by remember { mutableStateOf(viewModel.getServerIp()) }
+
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val authResult = GoogleAuthHelper.parseSignInResult(result.data)
+        authResult.onSuccess { account ->
+            val idToken = account.idToken ?: "token-${account.id}"
+            val accountEmail = account.email ?: "usuario.google@torneo.local"
+            val accountName = account.displayName ?: accountEmail.substringBefore("@")
+            viewModel.loginWithGoogle(idToken, accountEmail, accountName)
+        }.onFailure { exception ->
+            viewModel.setErrorMessage("Google Sign-In: ${exception.localizedMessage ?: "Error al autenticar"}")
+        }
+    }
 
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
@@ -98,7 +117,16 @@ fun LoginScreen(
                 ) {
                     // Google Button
                     Button(
-                        onClick = { viewModel.loginWithGoogle() },
+                        onClick = {
+                            try {
+                                val client = GoogleAuthHelper.getGoogleSignInClient(context)
+                                client.signOut().addOnCompleteListener {
+                                    googleSignInLauncher.launch(client.signInIntent)
+                                }
+                            } catch (e: Exception) {
+                                viewModel.setErrorMessage("Error en Google Client: ${e.message}")
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth().height(48.dp)

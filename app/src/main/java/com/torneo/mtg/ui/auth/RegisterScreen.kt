@@ -19,6 +19,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import com.torneo.mtg.data.auth.GoogleAuthHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,9 +33,24 @@ fun RegisterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    val context = LocalContext.current
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val authResult = GoogleAuthHelper.parseSignInResult(result.data)
+        authResult.onSuccess { account ->
+            val idToken = account.idToken ?: "token-${account.id}"
+            val accountEmail = account.email ?: "usuario.google@torneo.local"
+            val accountName = account.displayName ?: accountEmail.substringBefore("@")
+            viewModel.loginWithGoogle(idToken, accountEmail, accountName)
+        }.onFailure { exception ->
+            viewModel.setErrorMessage("Google Sign-In: ${exception.localizedMessage ?: "Error al autenticar"}")
+        }
+    }
 
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
@@ -82,7 +101,39 @@ fun RegisterScreen(
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Botón de Google en Registro
+                        Button(
+                            onClick = {
+                                try {
+                                    val client = GoogleAuthHelper.getGoogleSignInClient(context)
+                                    client.signOut().addOnCompleteListener {
+                                        googleSignInLauncher.launch(client.signInIntent)
+                                    }
+                                } catch (e: Exception) {
+                                    viewModel.setErrorMessage("Error en Google Client: ${e.message}")
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth().height(48.dp)
+                        ) {
+                            Text("Registrarse con Google", color = Color(0xFF0F172A), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFF334155))
+                            Text("  o con correo  ", color = Color(0xFF64748B), fontSize = 11.sp)
+                            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFF334155))
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
 
                         OutlinedTextField(
                             value = name,

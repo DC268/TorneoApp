@@ -70,14 +70,14 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun loginWithGoogle(email: String = "google.user@torneo.local", name: String = "Usuario Google") {
+    fun loginWithGoogle(idToken: String, email: String, name: String) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
             try {
                 val api = ApiClient.getService(getApplication())
                 val res = api.googleAuth(
                     GoogleAuthRequest(
-                        idToken = "android-google-oauth-token",
+                        idToken = idToken.ifBlank { "android-google-oauth-token" },
                         email = email,
                         name = name
                     )
@@ -93,6 +93,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 _uiState.value = AuthUiState.Error(e.localizedMessage ?: "Error de red")
             }
         }
+    }
+
+    fun setErrorMessage(msg: String) {
+        _uiState.value = AuthUiState.Error(msg)
     }
 
     fun setServerIp(ip: String) {
