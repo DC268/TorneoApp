@@ -47,12 +47,12 @@
             <form onsubmit="handleEmailLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Correo Electrónico</label>
-                    <input type="email" id="login-email" required value="dcagua268@gmail.com"
+                    <input type="email" id="login-email" required placeholder="tu@correo.com"
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 text-white">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Contraseña (letras y números)</label>
-                    <input type="password" id="login-password" required value="Holasoyyo12345"
+                    <input type="password" id="login-password" required placeholder="••••••••"
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 text-white">
                 </div>
                 <div id="auth-error" class="hidden text-xs text-red-400 bg-red-950/50 p-3 rounded-lg border border-red-800"></div>
@@ -257,13 +257,16 @@
 
     async function handleGoogleSignIn() {
         try {
+            const emailInput = document.getElementById('login-email').value.trim();
+            const email = emailInput || "usuario.google@gmail.com";
+            const name = emailInput ? emailInput.split('@')[0] : "Usuario Google";
             const res = await fetch('/api/auth/google', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     idToken: "mock-google-token",
-                    email: "dcagua268@gmail.com",
-                    name: "David Cagua (Google)"
+                    email: email,
+                    name: name
                 })
             });
             const data = await res.json();

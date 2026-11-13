@@ -29,8 +29,8 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    var email by remember { mutableStateOf("dcagua268@gmail.com") }
-    var password by remember { mutableStateOf("Holasoyyo12345") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var showIpDialog by remember { mutableStateOf(false) }
     var ipText by remember { mutableStateOf(viewModel.getServerIp()) }
 

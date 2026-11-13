@@ -70,7 +70,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun loginWithGoogle() {
+    fun loginWithGoogle(email: String = "google.user@torneo.local", name: String = "Usuario Google") {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
             try {
@@ -78,8 +78,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 val res = api.googleAuth(
                     GoogleAuthRequest(
                         idToken = "android-google-oauth-token",
-                        email = "dcagua268@gmail.com",
-                        name = "David Cagua (Google)"
+                        email = email,
+                        name = name
                     )
                 )
                 if (res.isSuccessful && res.body() != null) {

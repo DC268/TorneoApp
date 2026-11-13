@@ -4,6 +4,18 @@ Aplicación profesional y full-stack para la gestión de torneos de cartas y Lif
 
 ---
 
+## 📲 Descarga Automática de la App (APK)
+
+Descarga e instala la versión más reciente directamente en tu celular Android haciendo clic en el siguiente enlace:
+
+[![Descargar APK](https://img.shields.io/badge/Descargar%20APK-Torneo%20Master%20v1.0.0-success?style=for-the-badge&logo=android&logoColor=white)](https://github.com/DC268/TorneoApp/releases/download/v1.0.0/torneo-app.apk)
+
+- ⚡ **Descarga Directa (Releases)**: [**torneo-app.apk**](https://github.com/DC268/TorneoApp/releases/download/v1.0.0/torneo-app.apk)
+- 📦 **Mirror Alternativo**: [Descargar desde el repositorio (rama main)](https://github.com/DC268/TorneoApp/raw/main/apk/torneo-app.apk)
+- 🖥️ **Servidor Backend (JAR Ejecutable)**: [Descargar torneo-backend.jar](https://github.com/DC268/TorneoApp/releases/download/v1.0.0/torneo-backend.jar)
+
+---
+
 ## 🚀 Arquitectura y Tecnologías
 
 - **Backend**: Spring Boot 3.3.4 con Java 21, Spring Security (JWT + Google OAuth2), Spring Data JPA, HikariCP, Virtual Threads.
@@ -20,24 +32,13 @@ Aplicación profesional y full-stack para la gestión de torneos de cartas y Lif
 
 1. Abre **IntelliJ IDEA**.
 2. Selecciona **File -> Open...** y elige la carpeta:
-   ```
+   ```text
    G:\DC\Programas\TorneoApp
    ```
 3. IntelliJ IDEA detectará automáticamente la configuración de Gradle multi-módulo (`app` y `backend`).
 4. Selecciona el JDK:
    - Para el Backend: **Java 21 / 26 (Temurin o OpenJDK 21)**.
    - Para el Android App: **Java 17 / 21**.
-
----
-
-## 🔑 Credenciales de Acceso
-
-- **Administrador**:
-  - Correo: `dcagua268@gmail.com`
-  - Contraseña: `Holasoyyo12345` (Valida letras y números)
-  - Rol: `ADMIN` (Acceso completo a las 3 pestañas de administración)
-- **Jugadores**:
-  - Cualquier otro correo registrado recibe automáticamente el rol `PLAYER`.
 
 ---
 
@@ -75,3 +76,5 @@ Aplicación profesional y full-stack para la gestión de torneos de cartas y Lif
 - `SUPABASE_DB_USER`: `postgres`
 - `SUPABASE_DB_PASSWORD`: `<TU_PASSWORD>`
 - `JWT_SECRET`: `<TU_CLAVE_JWT>`
+- `ADMIN_EMAIL`: `<CORREO_ADMIN>`
+- `ADMIN_PASSWORD`: `<CONTRASENA_ADMIN>`
