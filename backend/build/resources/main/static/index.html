@@ -47,12 +47,12 @@
             <form onsubmit="handleEmailLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Correo Electrónico</label>
-                    <input type="email" id="login-email" required value="dcagua268@gmail.com"
+                    <input type="email" id="login-email" required placeholder="tu@correo.com"
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 text-white">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Contraseña (letras y números)</label>
-                    <input type="password" id="login-password" required value="Holasoyyo12345"
+                    <input type="password" id="login-password" required placeholder="••••••••"
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 text-white">
                 </div>
                 <div id="auth-error" class="hidden text-xs text-red-400 bg-red-950/50 p-3 rounded-lg border border-red-800"></div>
@@ -199,14 +199,14 @@
 
     // Life Tracker State
     let trackerFormat = 'COMMANDER';
-    let trackerCount = 4;
-    let trackerSeconds = 50 * 60;
+    let trackerCount = 2; // Inicia con 2 jugadores seleccionables
     let trackerInterval = null;
+    let activePlayerTurn = null;
     let trackerPlayers = [
-        { id: 1, name: 'Jugador 1', life: 40, poison: 0, cmdDmg: 0, color: 'bg-rose-900/60' },
-        { id: 2, name: 'Jugador 2', life: 40, poison: 0, cmdDmg: 0, color: 'bg-blue-900/60' },
-        { id: 3, name: 'Jugador 3', life: 40, poison: 0, cmdDmg: 0, color: 'bg-emerald-900/60' },
-        { id: 4, name: 'Jugador 4', life: 40, poison: 0, cmdDmg: 0, color: 'bg-purple-900/60' }
+        { id: 1, name: 'Jugador 1', life: 40, poison: 0, cmdDmg: {}, time: 20 * 60, isRunning: false, showCmd: false, color: 'bg-rose-900/60' },
+        { id: 2, name: 'Jugador 2', life: 40, poison: 0, cmdDmg: {}, time: 20 * 60, isRunning: false, showCmd: false, color: 'bg-blue-900/60' },
+        { id: 3, name: 'Jugador 3', life: 40, poison: 0, cmdDmg: {}, time: 20 * 60, isRunning: false, showCmd: false, color: 'bg-emerald-900/60' },
+        { id: 4, name: 'Jugador 4', life: 40, poison: 0, cmdDmg: {}, time: 20 * 60, isRunning: false, showCmd: false, color: 'bg-purple-900/60' }
     ];
 
     async function init() {
@@ -257,13 +257,16 @@
 
     async function handleGoogleSignIn() {
         try {
+            const emailInput = document.getElementById('login-email').value.trim();
+            const email = emailInput || "usuario.google@gmail.com";
+            const name = emailInput ? emailInput.split('@')[0] : "Usuario Google";
             const res = await fetch('/api/auth/google', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     idToken: "mock-google-token",
-                    email: "dcagua268@gmail.com",
-                    name: "David Cagua (Google)"
+                    email: email,
+                    name: name
                 })
             });
             const data = await res.json();
@@ -426,7 +429,7 @@
     function setTrackerFormat(fmt) {
         trackerFormat = fmt;
         const startingLife = fmt === 'COMMANDER' ? 40 : 20;
-        trackerPlayers.forEach(p => p.life = startingLife);
+        trackerPlayers.forEach(p => { p.life = startingLife; p.time = 20 * 60; p.isRunning = false; });
         document.getElementById('btn-format-std').className = fmt === 'STANDARD' ? 'px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white' : 'px-3 py-1 rounded-lg text-xs font-medium bg-slate-700 text-white';
         document.getElementById('btn-format-cmd').className = fmt === 'COMMANDER' ? 'px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white' : 'px-3 py-1 rounded-lg text-xs font-medium bg-slate-700 text-white';
         renderTracker();
@@ -434,80 +437,176 @@
 
     function setTrackerPlayers(count) {
         trackerCount = count;
+        trackerPlayers.forEach(p => { p.time = 20 * 60; p.isRunning = false; });
         renderTracker();
     }
 
     function renderTracker() {
         const grid = document.getElementById('tracker-grid');
         const active = trackerPlayers.slice(0, trackerCount);
-        grid.className = trackerCount === 2 ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-2 gap-4';
+        grid.className = trackerCount === 2 ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : (trackerCount === 3 ? 'grid grid-cols-1 md:grid-cols-3 gap-4' : 'grid grid-cols-2 gap-4');
 
         grid.innerHTML = active.map(p => {
-            const isDead = p.life <= 0 || p.poison >= 10 || p.cmdDmg >= 21;
+            const maxCmd = Object.values(p.cmdDmg || {}).length > 0 ? Math.max(...Object.values(p.cmdDmg)) : 0;
+            const isDead = p.life <= 0 || p.poison >= 10 || maxCmd >= 21 || p.time <= 0;
+            const minutes = Math.floor(p.time / 60);
+            const seconds = p.time % 60;
+            const timeStr = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+            if (p.showCmd) {
+                // Vista de Daño de Comandante
+                const opponents = active.filter(o => o.id !== p.id);
+                return `
+                    <div class="${p.color} p-5 rounded-2xl border ${isDead ? 'border-red-600' : 'border-slate-700'} relative flex flex-col justify-between min-h-[220px] shadow-xl">
+                        <div class="flex items-center justify-between border-b border-white/20 pb-2">
+                            <button onclick="togglePlayerCmd(${p.id})" class="text-xs bg-black/50 px-2 py-1 rounded-lg text-white font-bold hover:bg-black/80">👈 Volver a Vidas</button>
+                            <span class="text-xs font-black text-amber-300">👑 Daño de Comandante (21 max)</span>
+                        </div>
+                        <div class="space-y-2 my-2 overflow-y-auto max-h-36">
+                            ${opponents.map(opp => {
+                                const dmg = p.cmdDmg[opp.id] || 0;
+                                return `
+                                    <div class="flex items-center justify-between bg-black/40 p-2 rounded-xl text-xs">
+                                        <span class="font-bold text-white">${opp.name}</span>
+                                        <div class="flex items-center gap-2">
+                                            <button onclick="modCmdOpponent(${p.id}, ${opp.id}, -1)" class="w-6 h-6 rounded-full bg-white/20 text-white font-bold">-</button>
+                                            <span class="font-mono font-black ${dmg >= 21 ? 'text-red-400' : 'text-white'}">${dmg} / 21</span>
+                                            <button onclick="modCmdOpponent(${p.id}, ${opp.id}, 1)" class="w-6 h-6 rounded-full bg-white/20 text-white font-bold">+</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <p class="text-[10px] text-slate-300 text-center">Desliza o haz clic en volver para regresar a tus vidas.</p>
+                    </div>
+                `;
+            }
+
+            // Vista Principal: Vidas + Reloj de 20 minutos al lado
             return `
-                <div class="${p.color} p-6 rounded-2xl border ${isDead ? 'border-red-600' : 'border-slate-700'} relative flex flex-col justify-between h-56 shadow-xl">
-                    ${isDead ? `<div class="absolute inset-0 bg-red-950/80 rounded-2xl flex items-center justify-center text-xl font-black text-white">DERROTADO</div>` : ''}
+                <div class="${p.color} p-5 rounded-2xl border ${p.isRunning ? 'border-emerald-400 ring-2 ring-emerald-400' : (isDead ? 'border-red-600' : 'border-slate-700')} relative flex flex-col justify-between min-h-[220px] shadow-xl">
+                    ${isDead ? `<div class="absolute inset-0 bg-red-950/85 rounded-2xl flex flex-col items-center justify-center text-xl font-black text-white z-10"><span>DERROTADO</span><span class="text-xs font-normal">${p.time <= 0 ? 'Tiempo Agotado' : 'Sin Vidas'}</span></div>` : ''}
                     <div class="flex items-center justify-between">
                         <span class="font-bold text-sm text-white">${p.name}</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs bg-black/40 px-2 py-0.5 rounded-lg text-emerald-400">☣ ${p.poison}/10</span>
-                            <span class="text-xs bg-black/40 px-2 py-0.5 rounded-lg text-amber-400">👑 ${p.cmdDmg}/21</span>
+                        <button onclick="togglePlayerCmd(${p.id})" class="text-xs bg-black/40 hover:bg-black/70 px-2.5 py-1 rounded-lg text-amber-300 font-semibold">👉 Daño Cmd</button>
+                    </div>
+                    
+                    <!-- Vidas y Reloj de 20 min al lado -->
+                    <div class="flex items-center justify-around my-2">
+                        <button onclick="modLife(${p.id}, -1)" class="w-12 h-12 rounded-xl bg-black/40 hover:bg-black/60 text-white text-2xl font-bold flex items-center justify-center">-</button>
+                        <span class="text-4xl font-black text-white">${p.life}</span>
+                        <button onclick="modLife(${p.id}, 1)" class="w-12 h-12 rounded-xl bg-black/40 hover:bg-black/60 text-white text-2xl font-bold flex items-center justify-center">+</button>
+                        
+                        <!-- Reloj de 20 minutos individual -->
+                        <div onclick="togglePlayerTimer(${p.id})" class="cursor-pointer flex flex-col items-center justify-center bg-black/50 hover:bg-black/70 px-3 py-1.5 rounded-xl border ${p.isRunning ? 'border-emerald-400' : 'border-slate-600'}">
+                            <span class="text-xs text-slate-400 font-bold">20 MIN</span>
+                            <span class="text-lg font-mono font-black ${p.isRunning ? 'text-emerald-400' : (p.time < 180 ? 'text-rose-400' : 'text-white')}">${timeStr}</span>
+                            <span class="text-[9px] font-bold ${p.isRunning ? 'text-emerald-300' : 'text-slate-400'}">${p.isRunning ? 'TURNO ▶' : 'PAUSA ⏸'}</span>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between my-auto">
-                        <button onclick="modLife(${p.id}, -1)" class="w-14 h-14 rounded-2xl bg-black/40 hover:bg-black/60 text-white text-2xl font-bold flex items-center justify-center">-</button>
-                        <span class="text-5xl font-black text-white">${p.life}</span>
-                        <button onclick="modLife(${p.id}, 1)" class="w-14 h-14 rounded-2xl bg-black/40 hover:bg-black/60 text-white text-2xl font-bold flex items-center justify-center">+</button>
-                    </div>
-                    <div class="flex items-center justify-between text-xs text-slate-300">
-                        <button onclick="modPoison(${p.id}, 1)" class="hover:text-emerald-400">+1 Veneno</button>
-                        <button onclick="modCmd(${p.id}, 1)" class="hover:text-amber-400">+1 Comandante</button>
+
+                    <div class="flex items-center justify-between text-xs text-slate-300 border-t border-white/10 pt-2">
+                        <div class="flex items-center gap-2">
+                            <button onclick="modPoison(${p.id}, -1)" class="bg-black/30 px-2 py-0.5 rounded text-white">-</button>
+                            <span class="font-bold text-emerald-300">☣ ${p.poison}/10</span>
+                            <button onclick="modPoison(${p.id}, 1)" class="bg-black/30 px-2 py-0.5 rounded text-white">+</button>
+                        </div>
+                        <button onclick="togglePlayerCmd(${p.id})" class="hover:text-amber-300 font-semibold">👑 Cmd: ${maxCmd}/21</button>
                     </div>
                 </div>
             `;
         }).join('');
     }
 
-    function modLife(id, delta) {
+    function togglePlayerCmd(id) {
         const p = trackerPlayers.find(x => x.id === id);
-        if (p) p.life += delta;
-        renderTracker();
-    }
-    function modPoison(id, delta) {
-        const p = trackerPlayers.find(x => x.id === id);
-        if (p) p.poison = Math.max(0, p.poison + delta);
-        renderTracker();
-    }
-    function modCmd(id, delta) {
-        const p = trackerPlayers.find(x => x.id === id);
-        if (p) { p.cmdDmg = Math.max(0, p.cmdDmg + delta); p.life -= delta; }
-        renderTracker();
-    }
-
-    function toggleTimer() {
-        if (trackerInterval) {
-            clearInterval(trackerInterval);
-            trackerInterval = null;
-            document.getElementById('btn-timer-toggle').innerHTML = '<i class="fa-solid fa-play"></i>';
-        } else {
-            trackerInterval = setInterval(() => {
-                if (trackerSeconds > 0) {
-                    trackerSeconds--;
-                    const m = Math.floor(trackerSeconds / 60);
-                    const s = trackerSeconds % 60;
-                    document.getElementById('tracker-timer').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-                }
-            }, 1000);
-            document.getElementById('btn-timer-toggle').innerHTML = '<i class="fa-solid fa-pause"></i>';
+        if (p) {
+            p.showCmd = !p.showCmd;
+            renderTracker();
         }
     }
 
+    function modCmdOpponent(victimId, oppId, delta) {
+        const victim = trackerPlayers.find(x => x.id === victimId);
+        if (victim) {
+            if (!victim.cmdDmg) victim.cmdDmg = {};
+            const current = victim.cmdDmg[oppId] || 0;
+            victim.cmdDmg[oppId] = Math.max(0, current + delta);
+            victim.life -= delta;
+            renderTracker();
+        }
+    }
+
+    function togglePlayerTimer(playerId) {
+        const active = trackerPlayers.slice(0, trackerCount);
+        const player = active.find(p => p.id === playerId);
+        if (!player) return;
+
+        if (player.isRunning) {
+            player.isRunning = false;
+            stopGlobalTimerInterval();
+        } else {
+            active.forEach(p => p.isRunning = false);
+            player.isRunning = true;
+            startGlobalTimerInterval();
+        }
+        renderTracker();
+    }
+
+    function passTurn() {
+        const active = trackerPlayers.slice(0, trackerCount);
+        const runningIndex = active.findIndex(p => p.isRunning);
+        const nextIndex = runningIndex >= 0 ? (runningIndex + 1) % active.length : 0;
+        active.forEach(p => p.isRunning = false);
+        active[nextIndex].isRunning = true;
+        startGlobalTimerInterval();
+        renderTracker();
+    }
+
+    function startGlobalTimerInterval() {
+        if (trackerInterval) return;
+        trackerInterval = setInterval(() => {
+            const runningPlayer = trackerPlayers.slice(0, trackerCount).find(p => p.isRunning);
+            if (runningPlayer) {
+                if (runningPlayer.time > 0) {
+                    runningPlayer.time--;
+                    renderTracker();
+                } else {
+                    passTurn();
+                }
+            }
+        }, 1000);
+    }
+
+    function stopGlobalTimerInterval() {
+        if (trackerInterval) {
+            clearInterval(trackerInterval);
+            trackerInterval = null;
+        }
+    }
+
+    function toggleTimer() {
+        const anyRunning = trackerPlayers.slice(0, trackerCount).some(p => p.isRunning);
+        if (anyRunning) {
+            trackerPlayers.forEach(p => p.isRunning = false);
+            stopGlobalTimerInterval();
+        } else {
+            passTurn();
+        }
+        renderTracker();
+    }
+
     function resetTimer() {
-        if (trackerInterval) clearInterval(trackerInterval);
-        trackerInterval = null;
-        trackerSeconds = 50 * 60;
-        document.getElementById('tracker-timer').textContent = '50:00';
-        document.getElementById('btn-timer-toggle').innerHTML = '<i class="fa-solid fa-play"></i>';
+        stopGlobalTimerInterval();
+        trackerPlayers.forEach(p => {
+            p.time = 20 * 60;
+            p.isRunning = false;
+            p.life = trackerFormat === 'COMMANDER' ? 40 : 20;
+            p.poison = 0;
+            p.cmdDmg = {};
+            p.showCmd = false;
+        });
+        renderTracker();
     }
 
     window.onload = init;

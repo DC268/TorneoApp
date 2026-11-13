@@ -7,61 +7,73 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
 fun CenterTimerHub(
     modifier: Modifier = Modifier,
-    timerSeconds: Int,
-    isRunning: Boolean,
-    onToggleTimer: () -> Unit,
-    onResetTimer: () -> Unit,
+    isAnyRunning: Boolean,
+    onToggleGlobalTimer: () -> Unit,
+    onPassTurn: () -> Unit,
+    onResetMatch: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
-    val minutes = timerSeconds / 60
-    val seconds = timerSeconds % 60
-    val timeFormatted = String.format("%02d:%02d", minutes, seconds)
-
     Surface(
         modifier = modifier
-            .border(2.dp, Color.White.copy(alpha = 0.25f), RoundedCornerShape(22.dp)),
+            .border(2.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(22.dp)),
         shape = RoundedCornerShape(22.dp),
-        color = Color(0xFF151515).copy(alpha = 0.96f),
+        color = Color(0xFF151515).copy(alpha = 0.95f),
         shadowElevation = 8.dp
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(
-                text = timeFormatted,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Black,
-                color = if (timerSeconds < 300) Color(0xFFFF5252) else Color.White
-            )
+            // Botón Pausa / Reanudar Global
+            IconButton(onClick = onToggleGlobalTimer, modifier = Modifier.size(34.dp)) {
+                Text(
+                    text = if (isAnyRunning) "⏸" else "▶",
+                    color = Color.White,
+                    fontSize = 15.sp
+                )
+            }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                IconButton(onClick = onToggleTimer, modifier = Modifier.size(30.dp)) {
-                    Text(if (isRunning) "⏸" else "▶", color = Color.White, fontSize = 14.sp)
-                }
+            // Botón Pasar Turno (Avanza reloj al siguiente jugador)
+            IconButton(onClick = onPassTurn, modifier = Modifier.size(34.dp)) {
+                Icon(
+                    Icons.Default.SkipNext,
+                    contentDescription = "Pasar Turno",
+                    tint = Color(0xFF34D399),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
 
-                IconButton(onClick = onResetTimer, modifier = Modifier.size(30.dp)) {
-                    Icon(Icons.Default.Refresh, contentDescription = "Reset Timer", tint = Color.LightGray, modifier = Modifier.size(16.dp))
-                }
+            // Botón Reiniciar
+            IconButton(onClick = onResetMatch, modifier = Modifier.size(34.dp)) {
+                Icon(
+                    Icons.Default.Refresh,
+                    contentDescription = "Reiniciar Vidas",
+                    tint = Color.LightGray,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
 
-                IconButton(onClick = onOpenSettings, modifier = Modifier.size(30.dp)) {
-                    Icon(Icons.Default.Settings, contentDescription = "Configuración", tint = Color.LightGray, modifier = Modifier.size(16.dp))
-                }
+            // Botón Configuración (2, 3 o 4 Jugadores / Formato)
+            IconButton(onClick = onOpenSettings, modifier = Modifier.size(34.dp)) {
+                Icon(
+                    Icons.Default.Settings,
+                    contentDescription = "Configuración Jugadores",
+                    tint = Color(0xFF818CF8),
+                    modifier = Modifier.size(18.dp)
+                )
             }
         }
     }

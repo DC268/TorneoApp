@@ -26,7 +26,7 @@ fun MtgLifeTrackerScreen(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    // WAKELOCK: Mantiene la pantalla encendida
+    // WAKELOCK: Mantiene la pantalla encendida permanentemente mientras se juega
     DisposableEffect(Unit) {
         val window = (context as? Activity)?.window
         window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -35,10 +35,13 @@ fun MtgLifeTrackerScreen(
         }
     }
 
+    // Modal de selección de 2, 3 o 4 jugadores y formato (NO se salta)
     if (!state.isSetupFinished) {
         SetupDialog(
+            initialPlayers = state.playerCount,
+            initialFormat = state.format,
             onConfirm = { players, format ->
-                viewModel.initializeGame(players, format)
+                viewModel.initializeGame(players, format, 20)
             }
         )
     }
@@ -68,18 +71,22 @@ fun MtgLifeTrackerScreen(
                 else -> FourPlayersLayout(state.players, viewModel)
             }
 
+            // Hub central con Controles de Turno, Pausa Global y Configuración
             CenterTimerHub(
                 modifier = Modifier.align(Alignment.Center),
-                timerSeconds = state.timerSeconds,
-                isRunning = state.isTimerRunning,
-                onToggleTimer = { viewModel.toggleTimer() },
-                onResetTimer = { viewModel.resetTimer(50) },
+                isAnyRunning = state.isAnyTimerRunning,
+                onToggleGlobalTimer = { viewModel.toggleGlobalTimer() },
+                onPassTurn = { viewModel.passTurn() },
+                onResetMatch = { viewModel.resetMatch() },
                 onOpenSettings = { viewModel.openSetup() }
             )
         }
     }
 }
 
+// -----------------------------------------------------------------
+// LAYOUT PARA 2 JUGADORES (División 50/50 - Jugador 2 invertido 180°)
+// -----------------------------------------------------------------
 @Composable
 fun TwoPlayersLayout(players: List<PlayerState>, viewModel: MtgLifeTrackerViewModel) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -104,6 +111,9 @@ fun TwoPlayersLayout(players: List<PlayerState>, viewModel: MtgLifeTrackerViewMo
     }
 }
 
+// -----------------------------------------------------------------
+// LAYOUT PARA 3 JUGADORES (Arriba 2 jugadores invertidos, abajo 1 centrado)
+// -----------------------------------------------------------------
 @Composable
 fun ThreePlayersLayout(players: List<PlayerState>, viewModel: MtgLifeTrackerViewModel) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -132,6 +142,9 @@ fun ThreePlayersLayout(players: List<PlayerState>, viewModel: MtgLifeTrackerView
     }
 }
 
+// -----------------------------------------------------------------
+// LAYOUT PARA 4 JUGADORES (Cuadrícula 2x2 - Fila superior invertida)
+// -----------------------------------------------------------------
 @Composable
 fun FourPlayersLayout(players: List<PlayerState>, viewModel: MtgLifeTrackerViewModel) {
     Column(modifier = Modifier.fillMaxSize()) {
